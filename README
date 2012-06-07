@@ -1,0 +1,29 @@
+Jigsaw.rb is a simple ruby script for enumerating information about a company's employees.
+It is useful for Social Engineering or Email Phishing
+
+Help:
+$ ./jigsaw -h
+Jigsaw 1.0 ( http://www.pentestgeek.com )
+Usage: jigsaw [options]
+
+	example: jigsaw -s Google
+
+    -i, --id [Jigsaw Company ID]     The Jigsaw ID to use to pull records
+    -s, --search [Company Name]      Name of organization to search for
+
+Examples:
+$ ./jigsaw -s Google
+Your search returned more then one company
+215043 - 
+224667 - Google Postini Services
+439035 - AdMob Google Inc
+5032028 - Google Inc
+...
+
+$ ./jigsaw -i 215043 |grep -i market |grep -i manager
+Fyall, Mike	-	Product Marketing Manager
+Ramaswamy, Jenny	-	Marketing Manager
+Satyasai, Serena	-	Product Marketing Manager
+Fu, John	-	Product Marketing Manager
+Shah, Davang	-	Group Marketing Manager-US Large Advertiser Marketing
+...
