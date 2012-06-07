@@ -1,6 +1,10 @@
 Jigsaw.rb is a simple ruby script for enumerating information about a company's employees.
 It is useful for Social Engineering or Email Phishing
 
+#############
+Special Thanks to humble-desser he's the mastermind that came up with the whole ida
+#############3
+
 Help:
 $ ./jigsaw -h
 Jigsaw 1.0 ( http://www.pentestgeek.com )
