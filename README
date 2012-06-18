@@ -20,10 +20,10 @@ Usage: jigsaw [options]
 Examples:
 $ ./jigsaw -s Google
 Your search returned more then one company
-215043 - 
-224667 - Google Postini Services
-439035 - AdMob Google Inc
-5032028 - Google Inc
+Jigsaw ID: 215043	- Google, Inc.	6,627 employees.
+Jigsaw ID: 224667	- Google Postini Services	149 employees.
+Jigsaw ID: 439035	- AdMob Google Inc	2 employees.
+Jigsaw ID: 5032028	- Google Inc	1 employees.
 ...
 
 $ ./jigsaw -i 215043 |grep -i market |grep -i manager
