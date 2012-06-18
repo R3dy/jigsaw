@@ -9,7 +9,7 @@ about jigsaw.
 
 Help:
 $ ./jigsaw -h
-Jigsaw 1.0 ( http://www.pentestgeek.com )
+Jigsaw 1.0 ( http://www.accuvantlabs.com/ )
 Usage: jigsaw [options]
 
 	example: jigsaw -s Google
