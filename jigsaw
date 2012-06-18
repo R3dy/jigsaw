@@ -8,114 +8,174 @@ require 'net/http'
 require 'optparse'
 #company = ARGV[0]
 RECORDS = Array.new
+THREADS = Array.new
+DEPARTMENTS = ["10-Sales", "20-Marketing", "30-Finance & Administration", "40-Human Resources", "50-Support", "60-Engineering & Research", "70-Operations", "80-IT & IS", "0-Other"]
 
 options = {}
 args = OptionParser.new do |opts|
         opts.banner = "Jigsaw 1.0 ( http://www.pentestgeek.com )\r\n"
         opts.banner += "Usage: jigsaw [options]\r\n\r\n"
         opts.banner += "\texample: jigsaw -s Google\r\n\r\n"
-        opts.on("-i", "--id [Jigsaw Company ID]", "The Jigsaw ID to use to pull records") {|id| options[:id] = id}
-        opts.on("-s", "--search [Company Name]", "Name of organization to search for") {|company| options[:company] = company}
+        opts.on("-i", "--id [Jigsaw Company ID]", "The Jigsaw ID to use to pull records") { |id| options[:id] = id }
+        opts.on("-s", "--search [Company Name]", "Name of organization to search for") { |company| options[:company] = company }
+        opts.on("-r", "--report [Output Filename]", "Name to use for report EXAMPLE: \'-r google\' will generate \'google.csv\'") { |report| options[:report] = report }
+        opts.on("-v", "--verbose", "Enables verbose output\r\n\r\n") { |v| options[:verbose] = v }
 end
 
 args.parse!(ARGV)
 
 def get_target_id(target)
-	companyId = ""
-	uri = URI('http://www.jigsaw.com/FreeTextSearch.xhtml')
-	params = { :opCode => "search", :autoSuggested => "true", :freeText => target }
-	uri.query = URI.encode_www_form(params)
-	response = Net::HTTP.get_response(uri)
-	unless response.body.include?("Company Search Results")
-		response.body.split("\r\n").each do |line|
-			if line.include?("view more and edit")
-     			companyId = line.split("/")[1].to_s.gsub(/id/, "")
-   			end
-  		end
-  		return companyId
-  	end
-  	puts "Your search returned more then one company\r\n"
-  	get_company_list(response.body)
+  companyId = ""
+  uri = URI('http://www.jigsaw.com/FreeTextSearch.xhtml')
+  params = { :opCode => "search", :autoSuggested => "true", :freeText => target }
+  uri.query = URI.encode_www_form(params)
+  response = Net::HTTP.get_response(uri)
+  unless response.body.include?("Company Search Results")
+    response.body.split("\r\n").each do |line|
+      if line.include?("view more and edit")
+           companyId = line.split("/")[1].to_s.gsub(/id/, "")
+         end
+      end
+      return companyId
+    end
+    puts "Your search returned more then one company\r\n"
+    get_company_list(response.body)
 end
 
 def get_company_list(body)
-	company, id, newrec = "", "", ""
-	companys = Array.new
-	ids = Array.new
-	searchresults = Array.new
-	body.split("</a></td>").each do |line|
-		if line.include?("=") && !line.include?("text/html")
-			company = line.split("=")[18].to_s.split("'")[1].to_s.chomp unless line.split("=")[18].to_s.chomp.split("'")[1].to_s == ""
-			id = line.split("=")[5].split("&")[0].split("\r\n")[0].split("'")[0] unless line.split("=")[5].split("&")[0].split("\r\n")[0].split("'")[0] == ""
-			newrec = id.to_s. + " - " + company.to_s unless ids.include?(id.to_s)
-			searchresults << newrec unless searchresults.include?(newrec)
-			ids << id unless ids.include?(id)
-			companys << company unless companys.include?(company)
-		end
-	end
-	searchresults.each do |rec|
-		puts rec unless rec == ""
-	end
-	exit!
+  body.split("</tr>").each do |line|
+    if line.include?("type=\'checkbox\' class=\'checkbox\'  name=\'ids\' value=")
+      company =  line.split("=")[9].to_s.split("'")[1].to_s.split("'")[0].to_s
+      id = line.split("=")[10].to_s.split("/")[1].to_s.gsub(/id/, "")
+      employees = line.split("=")[13].split("'")[1].to_s.split("'")[0].to_s
+      puts "Jigsaw ID: " + id + "\t- " + company + "\t" + employees + " employees."
+    end
+  end
+  exit
 end
 
-def get_employees(id)
-	uri = URI('http://www.jigsaw.com/SearchContact.xhtml')
-	params = { :companyId => id, :opCode => "showCompDir", :rpage => "1", :rowsPerPage => "50" }
-	uri.query = URI.encode_www_form(params)
-	response = Net::HTTP.get_response(uri)
-	pages = get_number_of_pages(get_number_of_records(response.body)) / 50
-	puts "Found #{get_number_of_records(response.body)} records on #{pages.to_s} pages:\r\n" unless !get_number_of_records(response.body)
-	pages.times do |page|
-		page = page + 1
-		get_each_page(page.to_s, id)
-	end
+
+def get_employees(id, options, dept=nil)
+  uri = URI('http://www.jigsaw.com/SearchContact.xhtml')
+  params = { :companyId => id, :opCode => "showCompDir", :rpage => "1", :rowsPerPage => "50" }
+  uri.query = URI.encode_www_form(params)
+  response = Net::HTTP.get_response(uri)
+  domain = get_company_domain(response)
+  pages = get_number_of_pages(get_number_of_records(response.body)) / 50
+  if options[:verbose]
+    puts "Found #{get_number_of_records(response.body)} records on #{pages} pages:\r\n" unless !get_number_of_records(response.body)
+  end
+  pages.times do |page|
+    THREADS << Thread.new {
+      page = page + 1
+      get_each_page(page.to_s, id, domain, options, dept)
+    }
+    #THREADS.each {|t| t.join}
+  end
 end
 
-def get_each_page(page, id)
-	onerec = ""
-	puts "Extracting individual employee records from page #{page.to_s}\r\n"
-	uri = URI('http://www.jigsaw.com/SearchContact.xhtml')
+def get_company_domain(response)
+  domain = ""
+  response.body.each_line do |line|
+    if line.include?("option value=\"") && line.include?(".") && !line.include?("multiple=\"multiple\" size=\"")
+      domain = line.split(">")[1].split("<")[0].to_s
+      break
+    end
+  end
+  return domain
+end
+
+def get_each_page(page, id, domain, options, dept=nil)
+  thread = Thread.new {
+  onerec = ""
+  #puts "Extracting individual employee records from page #{page.to_s}\r\n" if options[:verbose]
+  uri = URI('http://www.jigsaw.com/SearchContact.xhtml')
         params = { :companyId => id.chomp, :opCode => "showCompDir", :rpage => page, :rowsPerPage => "50" }
         uri.query = URI.encode_www_form(params)
         response = Net::HTTP.get_response(uri)
-		response.body.split("/tr").each do |line|
-        	if line.include?("input type=\'checkbox\'")
-            	onerec << line.split("title=")[3].split("'")[1] + "\t-\t" + line.split("title=")[2].split(">")[1].split("<")[0] + "\r\n"
-				RECORDS << onerec.to_s unless RECORDS.include?(onerec)
-        	end
-        end	
+    response.body.split("/tr").each do |line|
+          if line.include?("input type=\'checkbox\'")
+            Record.new(line, domain)
+          end
+        end  
+    }
+    thread.join
 end
 
 def get_number_of_pages(records)
-	recordsroundedup = (records.to_i + 100) / 100 * 100
-	return recordsroundedup
+  recordsroundedup = (records.to_i + 100) / 100 * 100
+  return recordsroundedup
 end
 
 def get_number_of_records(body)
-	recordstrue = ""
-	body.split(";").each do |line|
-		recordstrue = line.split("+")[1].split('"')[1].to_s.chomp if line.include?("Your search returned") && !line.include?("at least")
-	end
-	if recordstrue.include?(",")
-		recordstrue = recordstrue.gsub(/,/, "")
-	end
-	if recordstrue == ""
-		puts "Dit not find any records\r\n"
-		exit!
-	else
-		return recordstrue
-	end
+  recordstrue = ""
+  body.split(";").each do |line|
+    recordstrue = line.split("+")[1].split('"')[1].to_s.chomp if line.include?("Your search returned") && !line.include?("at least")
+  end
+  if recordstrue.include?(",")
+    recordstrue = recordstrue.gsub(/,/, "")
+  end
+  if recordstrue == ""
+    puts "Dit not find any records\r\n"
+    exit!
+  else
+    return recordstrue
+  end
 end
 
-def dump_records(records)
-	puts "Dumping records...\r\n"
-	puts records
+class Record
+  
+  @@records = Array.new 
+  attr_accessor :fname, :lname, :fullname, :position, :city, :state, :email1, :email2, :email3, :email4, :department
+
+  def initialize(record_unclean, domain, dept=nil)
+    tempArray = record_unclean.split("='")
+    self.lname = tempArray[17].split(",")[0].to_s
+    self.fname = tempArray[17].split(",")[1].split("'")[0].to_s.gsub(/ /, "")
+    self.fullname = self.fname + " " + self.lname
+    self.position = tempArray[15].split("'")[0].to_s
+    self.email1 = self.fname.downcase + "." + self.lname.downcase + "@" + domain
+    self.email2 = self.fname.split(//)[0].to_s.downcase + self.lname.downcase + "@" + domain
+    self.state = tempArray[23].split("'")[0].to_s
+    self.city =  tempArray[20].split("'")[0].to_s
+    self.department = "1"
+    @@records << self unless Record.record_exists(self)
+  end
+  
+  def self.record_exists(record)
+    @@records.each do |rec|
+      if rec == record
+        return true
+      end
+    end
+    return false
+  end
+  
+  def self.write_all_records_to_report(reportname)
+    report = File.new("#{reportname}.csv", "w+")
+      report.puts "Name\tPosition\tDepartment\tEmail1\tEmail2\tCity\tState"
+      @@records.each do |record|
+        report.puts record.fullname + "\t" + record.position + "\t" + record.email2 + "\t" + record.email1 + "\t" + record.city + "\t" + record.state
+      end
+    report.close
+  end
+
+  def self.print_all_records_to_screen
+    @@records.each do |record|
+      puts record.fullname + "\t" + record.position + "\t" + record.email2 + "\t" + record.email1 + "\t" + record.city + "\t" + record.state
+    end
+    puts "Dumped #{@@records.length} records"
+  end
+
+
 end
 
+#Execution Starts Here
 if options[:company]
-	puts "Jigsaw ID for #{options[:company]} is: " + get_target_id(options[:company])
+  puts "Jigsaw ID for #{options[:company]} is: " + get_target_id(options[:company])
 elsif options[:id]
-	get_employees(options[:id].to_s.chomp)
-	dump_records(RECORDS)
-end
+  get_employees(options[:id].to_s.chomp, options)
+  THREADS.each { |thread| thread.join }
+  #dump_records(RECORDS)
+  Record.print_all_records_to_screen unless options[:report]
+  Record.write_all_records_to_report(options[:report]) unless !options[:report]
