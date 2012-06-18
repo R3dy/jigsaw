@@ -16,6 +16,9 @@ Usage: jigsaw [options]
 
     -i, --id [Jigsaw Company ID]     The Jigsaw ID to use to pull records
     -s, --search [Company Name]      Name of organization to search for
+    -r, --report [Output Filename]   Name to use for report EXAMPLE: '-r google' will generate 'google.csv'
+    -v, --verbose                    Enables verbose output
+
 
 Examples:
 $ ./jigsaw -s Google
