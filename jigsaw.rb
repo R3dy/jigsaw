@@ -70,7 +70,7 @@ def get_employees(id, options, dept=nil)
       recs = recs - Record.get_counter
       puts "Found #{recs} records in #{dept.split("-")[1].to_s.chomp}" unless !get_number_of_records(response.body)
     else
-      puts "Found #{get_number_of_records(response.body).to_s} records in #{dept.split("-")[1].to_s.chomp}" unless !get_number_of_records(response.body)\
+      puts "Found #{get_number_of_records(response.body).to_s} records in #{dept.split("-")[1].to_s.chomp}\r\n" unless !get_number_of_records(response.body)\
     end
   end
   Record.counter(get_number_of_records(response.body)) unless dept.split("-")[1].to_s.chomp == "Other"
@@ -181,6 +181,7 @@ class Record
       @@records.each do |record|
         report.puts record.fname + "\t" + record.lname + "\t" + record.fullname + "\t" + record.department + "\t" + record.position + "\t" + record.email2 + "\t" + record.email1 + "\t" + record.city + "\t" + record.state
       end
+      puts "Wrote #{@@records.length} records to #{report.path}\r\n"
     report.close
   end
 
@@ -196,7 +197,9 @@ end
 if options[:company]
   puts "Jigsaw ID for #{options[:company]} is: " + get_target_id(options[:company])
 elsif options[:id]
-  DEPARTMENTS.each { |dept| get_employees(options[:id].to_s.chomp, options, dept) }
+  DEPARTMENTS.each { |dept| 
+      get_employees(options[:id].to_s.chomp, options, dept) 
+  }
   THREADS.each { |thread| thread.join }
   Record.print_all_records_to_screen unless options[:report]
   Record.write_all_records_to_report(options[:report]) unless !options[:report]
