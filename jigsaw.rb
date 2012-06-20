@@ -6,11 +6,11 @@
 #    ./jigsaw.rb CompanyName
 require 'net/http'
 require 'optparse'
-#company = ARGV[0]
-RECORDS = Array.new
+
+
 THREADS = Array.new
 DEPARTMENTS = ["10-Sales", "20-Marketing", "30-Finance & Administration", "40-Human Resources", "50-Support", "60-Engineering & Research", "70-Operations", "80-IT & IS", "0-Other"]
-COUNTER = 0
+
 
 options = {}
 args = OptionParser.new do |opts|
@@ -22,8 +22,8 @@ args = OptionParser.new do |opts|
         opts.on("-r", "--report [Output Filename]", "Name to use for report EXAMPLE: \'-r google\' will generate \'google.csv\'") { |report| options[:report] = report }
         opts.on("-v", "--verbose", "Enables verbose output\r\n\r\n") { |v| options[:verbose] = v }
 end
-
 args.parse!(ARGV)
+
 
 def get_target_id(target)
   companyId = ""
@@ -42,6 +42,7 @@ def get_target_id(target)
     puts "Your search returned more then one company\r\n"
     get_company_list(response.body)
 end
+
 
 def get_company_list(body)
   body.split("</tr>").each do |line|
@@ -81,6 +82,7 @@ def get_employees(id, options, dept=nil)
   end
 end
 
+
 def get_company_domain(response)
   domain = ""
   response.body.each_line do |line|
@@ -92,6 +94,7 @@ def get_company_domain(response)
   return domain
 end
 
+
 def get_each_page(page, id, domain, options, dept=nil)
   onerec = ""
   #puts "Extracting individual employee records from page #{page.to_s}\r\n" if options[:verbose]
@@ -101,15 +104,17 @@ def get_each_page(page, id, domain, options, dept=nil)
     response = Net::HTTP.get_response(uri)
     response.body.split("/tr").each do |line|
       if line.include?("input type=\'checkbox\'")
-        RECORDS << Record.new(line, domain, dept)
+        Record.new(line, domain, dept)
       end
     end  
 end
+
 
 def get_number_of_pages(records)
   recordsroundedup = (records.to_i + 100) / 100 * 100
   return recordsroundedup
 end
+
 
 def get_number_of_records(body)
   recordstrue = ""
@@ -127,8 +132,8 @@ def get_number_of_records(body)
   end
 end
 
-class Record
-  
+
+class Record 
   @@counter = 0
   @@records = Array.new 
   attr_accessor :fname, :lname, :fullname, :position, :city, :state, :email1, :email2, :email3, :email4, :department
@@ -182,8 +187,6 @@ class Record
     end
     puts "Dumped #{@@records.length} records"
   end
-
-
 end
 
 #Execution Starts Here
