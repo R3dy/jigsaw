@@ -97,6 +97,7 @@ end
 
 def get_each_page(page, id, domain, options, dept=nil)
   onerec = ""
+  thread = Thread.new {
   #puts "Extracting individual employee records from page #{page.to_s}\r\n" if options[:verbose]
   uri = URI('http://www.jigsaw.com/SearchContact.xhtml')
     params = { :companyId => id.chomp, :opCode => "showCompDir", :rpage => page, :rowsPerPage => "50", :dept => dept.split("-")[0].to_s }
@@ -107,6 +108,8 @@ def get_each_page(page, id, domain, options, dept=nil)
         Record.new(line, domain, dept)
       end
     end  
+  }
+  thread.join
 end
 
 
@@ -149,8 +152,8 @@ class Record
 
   def initialize(record_unclean, domain, dept=nil)
     tempArray = record_unclean.split("=")
-    self.lname = tempArray[19].split(">")[1].split(",")[0].to_s.chomp
-    self.fname = tempArray[19].split(">")[1].split(",")[1].split("<")[0].to_s.chomp.gsub(/ /, "").split(".")[0].to_s.chomp
+    self.lname = tempArray[19].to_s.split(">")[1].split(",")[0].to_s.chomp
+    self.fname = tempArray[19].to_s.split(">")[1].to_s.split(",")[1].to_s.split("<")[0].to_s.chomp.gsub(/ /, "").chomp
     self.fullname = self.fname + " " + self.lname
     self.position = tempArray[15].split(">")[1].split("<")[0].to_s.chomp
     self.email1 = self.fname.downcase + "." + self.lname.downcase + "@" + domain
