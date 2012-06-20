@@ -179,3 +179,4 @@ elsif options[:id]
   #dump_records(RECORDS)
   Record.print_all_records_to_screen unless options[:report]
   Record.write_all_records_to_report(options[:report]) unless !options[:report]
+end
