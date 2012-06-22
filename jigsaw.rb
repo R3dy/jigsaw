@@ -15,7 +15,7 @@ DOMAIN_IS_SET = false
 
 options = {}
 args = OptionParser.new do |opts|
-	opts.banner = "Jigsaw 1.0 ( http://www.pentestgeek.com )\r\n"
+	opts.banner = "Jigsaw 1.0 ( http://www.pentestgeek.com/ - http://hdesser.wordpress.com/ )\r\n"
         opts.banner += "Usage: jigsaw [options]\r\n\r\n"
         opts.banner += "\texample: jigsaw -s Google\r\n\r\n"
         opts.on("-i", "--id [Jigsaw Company ID]", "The Jigsaw ID to use to pull records") { |id| options[:id] = id }
