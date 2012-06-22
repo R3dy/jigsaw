@@ -10,6 +10,7 @@ require 'optparse'
 
 THREADS = Array.new
 DEPARTMENTS = ["10-Sales", "20-Marketing", "30-Finance & Administration", "40-Human Resources", "50-Support", "60-Engineering & Research", "70-Operations", "80-IT & IS", "0-Other"]
+DOMAIN_IS_SET = false
 
 
 options = {}
@@ -62,7 +63,7 @@ def get_employees(id, options, dept=nil)
 	params = { :companyId => id, :opCode => "showCompDir", :dept => dept.split("-")[0].to_s, :rpage => "1", :rowsPerPage => "50" }
 	uri.query = URI.encode_www_form(params)
 	response = Net::HTTP.get_response(uri)
-	domain = get_company_domain(response)
+	domain = get_company_domain(response) unless Record.domain_is_set
 	pages = get_number_of_pages(get_number_of_records(response.body)) / 50
 	if options[:verbose]
 		if dept.split("-")[1].to_s.chomp == "Other"
@@ -77,21 +78,27 @@ def get_employees(id, options, dept=nil)
 	pages.times do |page|
 		THREADS << Thread.new {
 			page = page + 1
-			get_each_page(page.to_s, id, domain, options, dept)
+			get_each_page(page.to_s, id, Record.get_domain, options, dept)
 		}
 	end
 end
 
 
 def get_company_domain(response)
-	domain = ""
+	domains = Array.new
 	response.body.each_line do |line|
 		if line.include?("option value=\"") && line.include?(".") && !line.include?("multiple=\"multiple\" size=\"")
-			domain = line.split(">")[1].split("<")[0].to_s
-			break
+			domains << line.split(">")[1].split("<")[0].to_s.chomp
 		end
 	end
-	return domain
+	puts "Your target has #{domains.length} domain/s:\r\n\r\n"
+	domains.each do |domain|
+		puts domain
+	end
+	puts "\r\n"
+	print "Enter the name of the domain to use for crafting emails: "
+	domain = gets.chomp.to_s
+	Record.set_domain(domain)
 end
 
 
@@ -138,6 +145,8 @@ end
 class Record 
 	@@counter = 0
 	@@records = Array.new 
+	@@domain_is_set = false
+	@@domain = ""
 	attr_accessor :fname, :lname, :fullname, :position, :city, :state, :email1, :email2, :email3, :email4, :department
 
 	def self.counter(num)
@@ -147,6 +156,19 @@ class Record
   
 	def self.get_counter
 		return @@counter
+	end
+
+	def self.set_domain(domain)
+		@@domain = domain
+		@@domain_is_set = true
+	end	
+
+	def self.domain_is_set
+		return @@domain_is_set
+	end
+
+	def self.get_domain
+		return @@domain
 	end
 
 	def initialize(record_unclean, domain, dept=nil)
