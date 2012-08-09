@@ -12,6 +12,10 @@ THREADS = Array.new
 DEPARTMENTS = ["10-Sales", "20-Marketing", "30-Finance & Administration", "40-Human Resources", "50-Support", "60-Engineering & Research", "70-Operations", "80-IT & IS", "0-Other"]
 DOMAIN_IS_SET = false
 
+unless ARGV.length > 0
+        puts "Try ./jigsaw.rb -h\r\n\r\n"
+        exit!
+end
 
 options = {}
 args = OptionParser.new do |opts|
