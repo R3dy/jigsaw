@@ -9,16 +9,16 @@ Contact: royce.e.davis@gmail.com
 Help:
 -----
 	$ ./jigsaw -h
-	Jigsaw 1.0 ( http://www.pentestgeek.com/ - http://hdesser.wordpress.com/ )
+	Jigsaw 1.2 ( http://www.pentestgeek.com/ - http://hdesser.wordpress.com/ )
 	Usage: jigsaw [options]
 
 		example: jigsaw -s Google
 
-    	-i, --id [Jigsaw Company ID]     The Jigsaw ID to use to pull records
-    	-s, --search [Company Name]      Name of organization to search for
-    	-r, --report [Output Filename]   Name to use for report EXAMPLE: '-r google' will generate 'google.csv'
-    	-v, --verbose                    Enables verbose output
-
+    		-i, --id [Jigsaw Company ID]     The Jigsaw ID to use to pull records
+    		-s, --search [Company Name]      Name of organization to search for
+    		-r, --report [Output Filename]   Name to use for report EXAMPLE: '-r google' will generate 'google.csv'
+    		-d, --domain [Domain Name]       If you want you can specify the domain name to craft emails with
+    		-v, --verbose                    Enables verbose output
 Example1:
 ---------
 	$ ./jigsaw -s Google
@@ -31,7 +31,7 @@ Example1:
 
 Example2:
 ---------
-	Royces-MacBook-Pro:jigsaw r3dy$ ./jigsaw.rb -i 215043 -r google -d google.com
+	$ ./jigsaw.rb -i 215043 -r google -d google.com
 	Found 1047 records in the Sales department.
 	Found 666 records in the Marketing department.
 	Found 870 records in the Finance & Administration department.
@@ -43,4 +43,3 @@ Example2:
 	Found 300 records in the Other department.
 	Generating the final google.csv report
 	Wrote 6079 records to google.csv
-	Royces-MacBook-Pro:jigsaw r3dy$ 
