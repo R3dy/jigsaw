@@ -31,10 +31,16 @@ Example1:
 
 Example2:
 ---------
-	$ ./jigsaw -i 215043 |grep -i market |grep -i manager
-	Fyall, Mike	-	Product Marketing Manager
-	Ramaswamy, Jenny	-	Marketing Manager
-	Satyasai, Serena	-	Product Marketing Manager
-	Fu, John	-	Product Marketing Manager
-	Shah, Davang	-	Group Marketing Manager-US Large Advertiser Marketing
-
+	Royces-MacBook-Pro:jigsaw r3dy$ ./jigsaw.rb -i 215043 -r google -d google.com
+	Found 1047 records in the Sales department.
+	Found 666 records in the Marketing department.
+	Found 870 records in the Finance & Administration department.
+	Found 249 records in the Human Resources department.
+	Found 150 records in the Support department.
+	Found 1282 records in the Engineering & Research department.
+	Found 354 records in the Operations department.
+	Found 1171 records in the IT & IS department.
+	Found 300 records in the Other department.
+	Generating the final google.csv report
+	Wrote 6079 records to google.csv
+	Royces-MacBook-Pro:jigsaw r3dy$ 
