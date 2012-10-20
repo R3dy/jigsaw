@@ -6,6 +6,11 @@ Collaborative project between Royce Davis (R3dy) and humble-desser
 
 Contact: royce.e.davis@gmail.com
 
+Update 10/20/2012
+-----------------
+Try the -d option to specify a domain to use to craft emails with
+
+
 Help:
 -----
 	$ ./jigsaw -h
