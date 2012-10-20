@@ -141,6 +141,7 @@ def get_cookie(http=nil)
 			"User-Agent" => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:16.0) Gecko/20100101 Firefox/16.0',
 			"Cookie" => cookie,
 			"Accept" => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+			"Accept-Encoding" => 'text/html;charset=UTF-8',
 			"Proxy-Connection" => 'keep-alive',
 			"Cache-Control" => 'max-age=0'
 		 }
